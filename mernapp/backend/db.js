@@ -9,11 +9,14 @@ const connectToMongoDB = async () => {
 
     console.log("connected");
 
-    const fetched_data = await mongoose.connection.db.collection(
-      "foodData2"
-    );
-    const data = await fetched_data.find({}).toArray();
-    console.log();
+    const foodDataCollection = mongoose.connection.db.collection("foodData2");
+    const catDataCollection = mongoose.connection.db.collection("foodcategray");
+
+    const data = await foodDataCollection.find({}).toArray();
+    const catData = await catDataCollection.find({}).toArray();
+
+    global.foodData2 = data;
+    global.foodcategray = catData;
   } catch (err) {
     console.error(err);
   }
