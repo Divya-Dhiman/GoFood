@@ -1,16 +1,23 @@
 import express from "express";
 import connectToMongoDB from "./db.js";
-import 
+import createUser from "./Routes/CreateUser.js";
+import DisplayData from './Routes/DisplayData.js';
+import cors from 'cors'
+
+// app.use((req,res,next)=>{
+//   res.setHeader("Acccesss-Control-Allow-Origin", "http://localhost:3000")
+// })
 
 const app = express();
 const port = 5000;
 
-// Connect to MongoDB
 connectToMongoDB();
+
 app.use(express.json());
-app.use('/api',require("./Routes/CreateUser"))
+app.use(cors());
 
-
+app.use("/api", createUser);
+app.use("/api", DisplayData)
 app.get("/", (req, res) => {
   res.send("Hello, world!");
 });
