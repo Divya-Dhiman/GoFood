@@ -1,27 +1,31 @@
 import express from "express";
 import connectToMongoDB from "./db.js";
-import createUser from "./Routes/CreateUser.js";
-import DisplayData from './Routes/DisplayData.js';
-import cors from 'cors'
-
-// app.use((req,res,next)=>{
-//   res.setHeader("Acccesss-Control-Allow-Origin", "http://localhost:3000")
-// })
+import cors from "cors";
+import authRoutes from "./Routes/Auth.js";
 
 const app = express();
 const port = 5000;
 
-connectToMongoDB();
-
-app.use(express.json());
 app.use(cors());
 
-app.use("/api", createUser);
-app.use("/api", DisplayData)
-app.get("/", (req, res) => {
-  res.send("Hello, world!");
-});
+app.use(express.json());
 
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
-});
+connectToMongoDB()
+  .then(({ data, catData }) => {
+    global.foodData2 = data;
+    global.foodcategray = catData;
+
+app.use("/api/auth", authRoutes);
+
+    app.get("/", (req, res) => {
+      res.send("Hello World!");
+    });
+
+    app.listen(port, () => {
+      console.log(`Server is running on http://localhost:${port}`);
+    });
+  })
+  .catch((error) => {
+    console.error("Failed to connect to MongoDB:", error);
+    process.exit(1); 
+  });

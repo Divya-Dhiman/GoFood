@@ -3,23 +3,24 @@ import mongoose from "mongoose";
 const mongoURI =
   "mongodb+srv://divyainfoneo:Mummy1029@cluster0.w34sp3r.mongodb.net/gofood?retryWrites=true&w=majority";
 
-const connectToMongoDB = async () => {
+async function connectToMongo() {
   try {
-    await mongoose.connect(mongoURI, {});
+    await mongoose.connect(mongoURI, { useNewUrlParser: true });
 
-    console.log("connected");
+    console.log("Connected to MongoDB");
 
-    const foodDataCollection = mongoose.connection.db.collection("foodData2");
-    const catDataCollection = mongoose.connection.db.collection("foodcategray");
+    const foodCollection = mongoose.connection.db.collection("foodData2");
+    const data = await foodCollection.find({}).toArray();
 
-    const data = await foodDataCollection.find({}).toArray();
-    const catData = await catDataCollection.find({}).toArray();
+    const categrayCollection =
+      mongoose.connection.db.collection("foodcategray");
+    const catData = await categrayCollection.find({}).toArray();
 
-    global.foodData2 = data;
-    global.foodcategray = catData;
-  } catch (err) {
-    console.error(err);
+    return { data, catData };
+  } catch (error) {
+    console.error("Error connecting to MongoDB:", error);
+    throw error; 
   }
-};
+}
 
-export default connectToMongoDB;
+export default connectToMongo;
