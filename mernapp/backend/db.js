@@ -5,7 +5,11 @@ const mongoURI =
 
 async function connectToMongo() {
   try {
-    await mongoose.connect(mongoURI, { useNewUrlParser: true });
+    await mongoose.connect(mongoURI, {
+      // useNewUrlParser: true,
+      // useUnifiedTopology: true,
+      
+    });
 
     console.log("Connected to MongoDB");
 
