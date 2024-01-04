@@ -8,10 +8,15 @@ const OrderSchema = new Schema({
     required: true,
     unique: true,
   },
-  order_data: {
-    type: Array,
-    required: true,
-  },
+  order_data: [
+    {
+      Order_date: {
+        type: Date,
+        default: Date.now,
+      },
+      // Add other fields as needed
+    },
+  ],
 });
 
 export default mongoose.model("Order", OrderSchema);

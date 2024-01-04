@@ -6,9 +6,16 @@ import axios from "axios";
 import fetch from "../middleware/fetchdetails.js";
 import User from "../models/Users.js";
 import Order from "../models/Orders.js";
+import Stripe from "stripe";
+import dotenv from "dotenv"; 
 
+
+dotenv.config();
 const router = express.Router();
-const jwtSecret = "HaHa";
+const jwtSecret = "haha"
+
+const stripeSecretKey = "sk_test_tR3PYbcVNZZ796tH88S4VQ2u"; 
+const stripe = new Stripe(stripeSecretKey);
 
 
 
@@ -166,41 +173,41 @@ router.post("/foodData", async (req, res) => {
 });
 
 router.post("/orderData", async (req, res) => {
-  let data = req.body.order_data;
-  await data.splice(0, 0, { Order_date: req.body.order_date });
-  console.log("1231242343242354", req.body.email);
+  try {
+    const { order_data, email, order_date, token } = req.body;
 
-  //if email not exisitng in db then create: else: InsertMany()
-  let eId = await Order.findOne({ email: req.body.email });
-  console.log(eId);
-  if (eId === null) {
-    try {
-      console.log(data);
-      console.log("1231242343242354", req.body.email);
+    // Create a charge using the Stripe API
+    const charge = await stripe.charges.create({
+      amount: order_data.reduce((total, food) => total + food.price * 100, 0),
+      currency: "INR",
+      source: token.id,
+      description: "Payment for items in the cart",
+    });
+
+    // Find an existing order for the user
+    const existingOrder = await Order.findOne({ email: email });
+
+    if (!existingOrder) {
+      // If no existing order, create a new order
       await Order.create({
-        email: req.body.email,
-        order_data: [data],
-      }).then(() => {
-        res.json({ success: true });
+        email: email,
+        order_data: [order_data],
       });
-    } catch (error) {
-      console.log(error.message);
-      res.send("Server Error", error.message);
-    }
-  } else {
-    try {
+    } else {
+      // If existing order, update the order_data array
       await Order.findOneAndUpdate(
-        { email: req.body.email },
-        { $push: { order_data: data } }
-      ).then(() => {
-        res.json({ success: true });
-      });
-    } catch (error) {
-      console.log(error.message);
-      res.send("Server Error", error.message);
+        { email: email },
+        { $push: { order_data: order_data } }
+      );
     }
+
+    res.status(200).json({ message: "Payment successful", charge });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
+
 
 
 
@@ -212,5 +219,7 @@ router.post("/myOrderData", async (req, res) => {
     res.send("Error", error.message);
   }
 });
+
+
 
 export default router;

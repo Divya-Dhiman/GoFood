@@ -1,7 +1,7 @@
 import React from "react";
 import DeleteIcon from "@material-ui/icons/Delete";
 import { useCart, useDispatchCart } from "../Components/ContextReducer";
-
+import StripeCheckout from "react-stripe-checkout";
 const Cart = () => {
   const data = useCart();
   const dispatch = useDispatchCart();
@@ -21,6 +21,7 @@ const Cart = () => {
         order_data: data,
         email: userEmail,
         order_date: new Date().toDateString(),
+        token: token.id,
       }),
     });
     console.log("JSON RESPONSE:::::", response.status);
@@ -71,11 +72,17 @@ const Cart = () => {
         <h1 className="fs-2">Total Price: {totalPrice}/-</h1>
       </div>
       <div>
-        <button
-          className="btn bg-success mt-5"
-          onClick={handleCheckOut}
-        >Check Out
-        </button>
+        {/* Use the StripeCheckout component to handle payments */}
+        <StripeCheckout
+          stripeKey="pk_test_51BTUDGJAJfZb9HEBwDg86TN1KNprHjkfipXmEDMb0gSCassK5T3ZfxsAbcgKVmAIXF7oZ6ItlZZbXO6idTHE67IM007EwQ4uN3"
+          token={handleCheckOut}
+          amount={totalPrice * 100} // Amount in cents
+          name="Badmosh"
+          description="Payment for items in the cart"
+          currency="INR"
+        >
+          <button className="btn bg-success mt-5">Pay Now</button>
+        </StripeCheckout>
       </div>
     </div>
   );
