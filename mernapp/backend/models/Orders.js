@@ -3,20 +3,10 @@ import mongoose from "mongoose";
 const { Schema } = mongoose;
 
 const OrderSchema = new Schema({
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-  },
-  order_data: [
-    {
-      Order_date: {
-        type: Date,
-        default: Date.now,
-      },
-      // Add other fields as needed
-    },
-  ],
+  order_data: [{ name: String, qty: Number, size: String, price: Number }],
+  email: String,
+  token: String,
+  order_date: String,
 });
 
 export default mongoose.model("Order", OrderSchema);
