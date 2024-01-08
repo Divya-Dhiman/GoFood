@@ -14,7 +14,8 @@ dotenv.config();
 const router = express.Router();
 const jwtSecret = "haha"
 
-const stripeSecretKey = "sk_test_tR3PYbcVNZZ796tH88S4VQ2u"; 
+const stripeSecretKey =
+  "sk_test_51OV7X5SAXoYgVXCem1gK296BDWEZ111C8GdzcVOkET6TZxwpd4ymxV5vWRwaWmKY6DlczZe5NFCMWq6qDy6pFqGt00aU5HREg3"; 
 const stripe = new Stripe(stripeSecretKey);
 
 
@@ -32,14 +33,12 @@ router.post(
     if (!errors.isEmpty()) {
       return res.status(400).json({ success, errors: errors.array() });
     }
-    // console.log(req.body)
-    // let user = await User.findOne({email:req.body.email})
+   
     const salt = await bcrypt.genSalt(10);
     let securePass = await bcrypt.hash(req.body.password, salt);
     try {
       await User.create({
         name: req.body.name,
-        // password: req.body.password,  first write this and then use bcryptjs
         password: securePass,
         email: req.body.email,
         location: req.body.location,
@@ -79,14 +78,14 @@ router.post(
 
     const { email, password } = req.body;
     try {
-      let user = await User.findOne({ email }); //{email:email} === {email}
+      let user = await User.findOne({ email }); 
       if (!user) {
         return res
           .status(400)
           .json({ success, error: "Try Logging in with correct credentials" });
       }
 
-      const pwdCompare = await bcrypt.compare(password, user.password); // this return true false.
+      const pwdCompare = await bcrypt.compare(password, user.password);
       if (!pwdCompare) {
         return res
           .status(400)
@@ -133,10 +132,8 @@ router.post("/getlocation", async (req, res) => {
           "&key=74c89b3be64946ac96d777d08b878d43"
       )
       .then(async (res) => {
-        // console.log(`statusCode: ${res.status}`)
         console.log(res.data.results);
-        // let response = stringify(res)
-        // response = await JSON.parse(response)
+        
         let response = res.data.results[0].components;
         console.log(response);
         let { village, county, state_district, state, postcode } = response;
@@ -172,44 +169,56 @@ router.post("/foodData", async (req, res) => {
   }
 });
 
+// router.post("/orderData", async (req, res) => {
+//   try {
+//     const { order_data, email, token } = req.body;
+
+//     if (!token || !token.id) {
+//       return res.status(400).json({ error: "Invalid token" });
+//     }
+
+//     const charge = await stripe.charges.create({
+//       amount: order_data.reduce((total, food) => total + food.price * 100, 0),
+//       currency: "INR",
+//       source: token.id,
+//       description: "Payment for items in the cart",
+//     });
+
+//     const existingOrder = await Order.findOne({ email: email });
+
+//     if (!existingOrder) {
+//       await Order.create({
+//         email: email,
+//         order_data: [order_data],
+//       });
+//     } else {
+//       await Order.findOneAndUpdate(
+//         { email: email },
+//         { $push: { order_data: order_data } }
+//       );
+//     }
+
+//     res.status(200).json({ message: "Payment successful", charge });
+//   } catch (error) {
+//     console.error("Error during payment:", error);
+//     res.status(500).json({ error: "Internal Server Error" });
+//   }
+// });
 router.post("/orderData", async (req, res) => {
   try {
-    const { order_data, email, order_date, token } = req.body;
+    const { order_data, email, token, order_date } = req.body;
 
-    // Create a charge using the Stripe API
-    const charge = await stripe.charges.create({
-      amount: order_data.reduce((total, food) => total + food.price * 100, 0),
-      currency: "INR",
-      source: token.id,
-      description: "Payment for items in the cart",
-    });
+    // Save order data to MongoDB
+    const newOrder = new Order({ order_data, email, token, order_date });
+    await newOrder.save();
 
-    // Find an existing order for the user
-    const existingOrder = await Order.findOne({ email: email });
-
-    if (!existingOrder) {
-      // If no existing order, create a new order
-      await Order.create({
-        email: email,
-        order_data: [order_data],
-      });
-    } else {
-      // If existing order, update the order_data array
-      await Order.findOneAndUpdate(
-        { email: email },
-        { $push: { order_data: order_data } }
-      );
-    }
-
-    res.status(200).json({ message: "Payment successful", charge });
+    res.status(200).send("Order placed successfully!");
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
+    console.error("Error during order placement:", error);
+    res.status(500).send("Failed to place order. Please try again.");
   }
 });
-
-
-
+  
 
 router.post("/myOrderData", async (req, res) => {
   try {
