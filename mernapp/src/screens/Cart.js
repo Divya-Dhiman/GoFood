@@ -29,7 +29,7 @@
           order_date: new Date().toDateString(),
         }),
       });
-
+console.log();
       if (response.status === 200) {
         dispatch({ type: "DROP" });
         alert("Order placed successfully!");
